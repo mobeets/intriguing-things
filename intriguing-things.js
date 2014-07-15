@@ -21,8 +21,8 @@ function add_to_list(data) {
   }).appendTo(".container");
 }
 
-// var url = "intriguing-things.json";
-var url = "http://raw.githubusercontent.com/mobeets/intriguing-things/master/intriguing-things.json";
+var url = "intriguing-things.json";
+// var url = "http://raw.githubusercontent.com/mobeets/intriguing-things/master/intriguing-things.json";
 $(function() {
     console.log('Hello!');
     $.getJSON(url, add_to_list);
