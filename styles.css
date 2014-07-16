@@ -5,6 +5,19 @@ body {
   padding: 40px 15px;
   text-align: center;
 }
-.dt {
+.item-title {
+    margin-bottom: 10px;
+}
+.dt, .num {
     color: red;
+}
+.title {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+.num {
+    margin-left: 10px;
+}
+.ps {
+    margin-left: 20px;
 }

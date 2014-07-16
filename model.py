@@ -21,7 +21,8 @@ def parse(html):
     return dt, contents, next_url
 
 class Thing:
-    def __init__(self, title, url):
+    def __init__(self, number, title, url):
+        self.number = number
         self.title = title
         self.url = url
         self.ps = []
@@ -31,21 +32,28 @@ class Thing:
         return u'<a href="{0}">{1}</a>: {2}'.format(self.url, self.title, ps)
 
 def things(obj):
+    breaks = ["""1957 American English""", """Today's 1957""", """Tell Your Friends: Subscribe to 5 Intri""", """Did some good soul forward you this email?""", """Were you forwarded this email?""" """1957 English Usage""" """Subscribe to 5 Intriguing Things"""]
     i = 1
     thing = None
     items = []
-    has_number = lambda i, val: val.startswith('{0}.'.format(i))
+    found_number = lambda i, val: val.startswith('{0}.'.format(i))
+    has_number = lambda i, p: (p.strong is not None and found_number(i, p.strong.text)) or found_number(i, p.text)
     for p in obj.findChildren('p'):
-        if p.text is not None and ((p.strong is not None and has_number(i, p.strong.text)) or has_number(i, p.text)):
-            thing = Thing(p.a.text if p.a is not None else p.text.partition('. ')[-1], p.a.get('href') if (p.a is not None and p.a.has_key('href')) else '#')
-        elif thing is not None and p.text == u'&nbsp;':
-            items.append(thing)
-            thing = None
+        if p.text is None:
+            continue
+        if any([has_number(j, p) for j in xrange(1, 7)]): # for various numbering errors
+            if thing is not None:
+                items.append(thing)
+                thing = None
+            thing = Thing(i, p.a.text if p.a is not None else p.text.partition('. ')[-1], p.a.get('href') if (p.a is not None and p.a.has_key('href')) else '#')
             i += 1
-            if i == 6:
-                break
-        elif thing is not None and p.text:
-            thing.ps.append(str(p))
+        elif thing is not None:
+            if [brk for brk in breaks if brk in p.text]:
+                if thing is not None:
+                    items.append(thing)
+                    thing = None
+            else:
+                thing.ps.append(str(p))
     if thing is not None:
         items.append(thing)
     return items
@@ -100,12 +108,12 @@ def tmp_main(outfile='tmp.json'):
             if dt.strftime('%Y-%m-%d') == '2013-12-17':
                 ts = things(fix_2014_06_06(html))
             elif dt.strftime('%Y-%m-%d') == '2014-06-06':
-                1/0 # pass
+                pass # 1/0 # pass
             else:
                 print 'ERROR: {0}'.format(dt)
         T.append((dt, ts))
     write(T, outfile)
 
 if __name__ == '__main__':
-    tmp_main()
-    # main()
+    # tmp_main()
+    main()
