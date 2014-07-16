@@ -17,7 +17,8 @@ def parse(html):
     obj = BeautifulSoup(html).body
     dt = parser.parse(obj.find('div', attrs={'class': 'date'}).text.strip())
     contents = obj.find('div', attrs={'class': 'message-body'})
-    next_url = obj.find('div', attrs={'class': 'paging'}).a.get('href')
+    next_url = obj.find('a', attrs={'class': 'paging-button prev'})
+    next_url = next_url.get('href') if next_url is not None else next_url
     return dt, contents, next_url
 
 class Thing:
@@ -41,7 +42,7 @@ def things(obj):
     for p in obj.findChildren('p'):
         if p.text is None:
             continue
-        if any([has_number(j, p) for j in xrange(1, 7)]): # for various numbering errors
+        if any([has_number(j, p) for j in xrange(i, i+2)]): # for various numbering errors
             if thing is not None:
                 items.append(thing)
                 thing = None
