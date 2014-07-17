@@ -9,9 +9,7 @@ from dateutil import parser
 from BeautifulSoup import BeautifulSoup
 
 BASE_URL = 'http://tinyletter.com/intriguingthings/letters/'
-EXAMPLE_URL =  'http://tinyletter.com/intriguingthings/letters/5-intriguing-things-146'
 RESTART_URL = 'http://tinyletter.com/intriguingthings/letters/5-intriguing-things-like-a-dog-in-an-mri-machine'
-NEXT_URL = 'http://tinyletter.com/intriguingthings/letters/5-intriguing-things-like-a-dog-in-an-mri-machine'
 
 class Thing:
     def __init__(self, number, title, url):
@@ -38,7 +36,7 @@ def parse(html):
     return dt, contents, next_url
 
 def things(obj, src_url):
-    breaks = ["""1957 American English""", """Today's 1957""", """Tell Your Friends: Subscribe to 5 Intri""", """Did some good soul forward you this email?""", """Were you forwarded this email?""", """1957 English Usage""", """Subscribe to 5 Intriguing Things"""]
+    breaks = ["""Subscribe to The Newsletter""", """1957 American English""", """Today's 1957""", """Tell Your Friends: Subscribe to 5 Intri""", """Did some good soul forward you this email?""", """Were you forwarded this email?""", """1957 English Usage""", """Subscribe to 5 Intriguing Things"""]
     i = 1
     thing = None
     items = []
@@ -71,13 +69,13 @@ def fix_2014_06_06(html):
     html = html.replace('<p>"Eating too fast', '</p><p>"Eating too fast')
     return parse(html)[1]
 
-def load(url=EXAMPLE_URL):
+def load(url):
     dt, contents, next_url = parse(read(url))
     if dt.strftime('%Y-%m-%d') == '2014-06-06':
         contents = fix_2014_06_06(read(url))
     return (dt, things(contents, url)), next_url
 
-def write(T, outfile, merge):
+def write(T, Tp0, outfile):
     class MyEncoder(json.JSONEncoder):
         def default(self, obj):
             if isinstance(obj, datetime.datetime):
@@ -86,21 +84,14 @@ def write(T, outfile, merge):
                 return obj.__dict__
             return json.JSONEncoder.default(self, obj)
 
-    out = json.dumps(T, cls=MyEncoder)
-    if merge and os.path.exists(outfile):
-        with open(outfile) as f:
-            out_p = json.load(f)
-        out_c = []
-        for x,y in json.loads(out) + out_p:
-            if x not in out_c:
-                out_c.append((x,y))
-        out = out_c
-    open(outfile, 'w').write(out)
+    Tp_str = json.dumps(T, cls=MyEncoder)
+    if Tp0:
+        dts = [dt for dt, ts in Tp0]
+        Tp = [(dt, ts) for dt, ts in json.loads(Tp_str) if dt not in dts]
+        Tp_str = json.dumps(Tp0 + Tp, cls=MyEncoder)
+    open(outfile, 'w').write(Tp_str)
 
-def main(starturl, outfile, merge):
-    """
-    * want to store source url 
-    """
+def io(starturl, outfile, Tp0):
     T = []
     next_url = starturl
     while next_url and next_url != 'javascript:void(0)':
@@ -110,33 +101,61 @@ def main(starturl, outfile, merge):
         if len(ts) == 0 and dt.strftime('%Y-%m-%d') not in ['2014-06-06']:
             print 'ERROR: {0}'.format(dt)
         T.append(ts)
-    write(T, outfile, merge)
+    write(T, Tp0, outfile)
 
-def tmp_main(starturl, outfile, merge):
+def local_io(starturl, outfile, Tp0, srcdir):
+    """
+    use html files stored in srcdir, for testing locally
+    """
     T = []
-    for infile in glob.glob('int_things_raw/*'):
+    url_to_filename = lambda url: os.path.join(srcdir, url.replace('/', '___'))
+    filename_to_url = lambda fn: fn.replace('___', '/').replace(srcdir + '/', '')
+
+    next_url = starturl
+    while next_url and next_url != 'javascript:void(0)':
+        next_url = BASE_URL + next_url.split('letters/')[1]
+        infile = url_to_filename(next_url)
+        print infile
         html = open(infile).read()
-        dt, contents, _ = parse(html)
-        src_url = infile.replace('___', '/').replace('int_things_raw/', '')
-        ts = things(contents, src_url)
+        dt, contents, next_url = parse(html)
+        ts = things(contents, next_url)
         if len(ts) == 0:
             if dt.strftime('%Y-%m-%d') == '2013-12-17':
-                ts = things(fix_2014_06_06(html), src_url)
+                ts = things(fix_2014_06_06(html), next_url)
             elif dt.strftime('%Y-%m-%d') == '2014-06-06':
                 pass
             else:
                 print 'ERROR: {0}'.format(dt)
         T.append((dt, ts))
-    write(T, outfile, merge)
+    write(T, Tp0, outfile)
+
+def load_old_and_start_url(infile):
+    if os.path.exists(infile):
+        with open(infile) as f:
+            Tp0 = json.load(f)
+            last_url = Tp0[-1][1][0]['src_url']
+            return Tp0, last_url
+    return [], None
+
+def main(infile, outfile, srcdir=None):
+    Tp0, starturl = load_old_and_start_url(infile)
+    if starturl is None:
+        starturl = RESTART_URL
+    if srcdir:
+        local_io(starturl, outfile, Tp0, srcdir)
+    else:
+        io(starturl, outfile, Tp0)
 
 if __name__ == '__main__':
+    """
+    To do:
+        1. heroku scheduler # https://devcenter.heroku.com/articles/scheduler
+        2. paging, i.e. handling too much data (n.b. this will require adding search functionality)
+        ?. add favicon
+    """
     psr = argparse.ArgumentParser()
-    psr.add_argument('--outfile', default='tmp.json')
-    psr.add_argument('--restart', action='store_true', default=False)
-    psr.add_argument('--local', action='store_true', default=False)
-    psr.add_argument('--merge', action='store_true', default=False)
+    psr.add_argument('--infile', default='')
+    psr.add_argument('--outfile', required=True, default='tmp.json')
+    psr.add_argument('--srcdir', default=None)
     args = psr.parse_args()
-    if args.local:
-        tmp_main(RESTART_URL if args.restart else NEXT_URL, args.outfile, args.merge)
-    else:
-        main(RESTART_URL if args.restart else NEXT_URL, args.outfile, args.merge)
+    main(args.infile, args.outfile, args.srcdir)
