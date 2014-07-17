@@ -146,12 +146,20 @@ def main(infile, outfile, srcdir=None):
     else:
         io(starturl, outfile, Tp0)
 
+"""
+To do:
+    1. heroku scheduler # https://devcenter.heroku.com/articles/scheduler
+    2. paging, i.e. handling too much data (n.b. this will require adding search functionality)
+    ?. add favicon
+"""
 if __name__ == '__main__':
     """
-    To do:
-        1. heroku scheduler # https://devcenter.heroku.com/articles/scheduler
-        2. paging, i.e. handling too much data (n.b. this will require adding search functionality)
-        ?. add favicon
+    To update data:
+        (0.  download data.json from github and write to disk locally)
+        1.   python model.py --infile data.json --outfile data.json
+        2.   git add .
+        3.   git commit -m "data update"
+        4.   git push
     """
     psr = argparse.ArgumentParser()
     psr.add_argument('--infile', default='')
