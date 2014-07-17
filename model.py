@@ -12,12 +12,12 @@ BASE_URL = 'http://tinyletter.com/intriguingthings/letters/'
 RESTART_URL = 'http://tinyletter.com/intriguingthings/letters/5-intriguing-things-like-a-dog-in-an-mri-machine'
 
 class Thing:
-    def __init__(self, number, title, url):
+    def __init__(self, number, title, url, src_url):
         self.number = number
         self.title = title
         self.url = url
         self.ps = []
-        self.src_url = None
+        self.src_url = src_url
 
     def __str__(self):
         ps = u'\n<br>'.join([p.decode('utf-8') for p in self.ps])
@@ -50,8 +50,7 @@ def things(obj, src_url):
             if thing is not None:
                 items.append(thing)
                 thing = None
-            thing = Thing(i, p.a.text if p.a is not None else p.text.partition('. ')[-1], p.a.get('href'))
-            thing.src_url = src_url
+            thing = Thing(i, p.a.text if p.a is not None else p.text.partition('. ')[-1], p.a.get('href'), src_url)
             i += 1
         elif thing is not None:
             if [brk for brk in breaks if brk in p.text]:
@@ -116,8 +115,10 @@ def local_io(starturl, outfile, Tp0, srcdir):
         next_url = BASE_URL + next_url.split('letters/')[1]
         infile = url_to_filename(next_url)
         print infile
+        if 'int_things_raw/http:______tinyletter.com___intriguingthings___letters___5-intriguing-things-142' == infile:
+            break
         html = open(infile).read()
-        dt, contents, next_url = parse(html)
+        dt, contents, new_url = parse(html)
         ts = things(contents, next_url)
         if len(ts) == 0:
             if dt.strftime('%Y-%m-%d') == '2013-12-17':
@@ -127,13 +128,14 @@ def local_io(starturl, outfile, Tp0, srcdir):
             else:
                 print 'ERROR: {0}'.format(dt)
         T.append((dt, ts))
+        next_url = new_url
     write(T, Tp0, outfile)
 
 def load_old_and_start_url(infile):
     if os.path.exists(infile):
         with open(infile) as f:
             Tp0 = json.load(f)
-            last_url = Tp0[-1][1][0]['src_url']
+            last_url = Tp0[-1][1][0].get('src_url', None)
             return Tp0, last_url
     return [], None
 
