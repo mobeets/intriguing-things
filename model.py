@@ -150,6 +150,11 @@ def main(infile, outfile, srcdir=None):
 
 """
 To do:
+
+# https://github.com/ryandotsmith/null-buildpack
+
+try to get 'heroku run ___' to work!
+
     1. heroku scheduler # https://devcenter.heroku.com/articles/scheduler
     2. heroku config vars to store key # http://stackoverflow.com/questions/14177039/how-to-store-private-key-on-heroku 
     3. paging, i.e. handling too much data (n.b. this will require adding search functionality)
