@@ -1,1 +1,1 @@
-worker: bash ./scrape_and_push.sh
+worker: python model.py --infile data.json --outfile data.json
