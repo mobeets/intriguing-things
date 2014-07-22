@@ -1,1 +1,1 @@
-app: model.py
+app: python model.py
