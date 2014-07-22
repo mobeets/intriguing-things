@@ -1,1 +1,1 @@
-program: scrape_and_push.sh
+program: ./scrape_and_push.sh
