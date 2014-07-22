@@ -7,7 +7,7 @@ cd intriguing-things
 python model.py --infile data.json --outfile data.json
 git add .
 git commit -m "data update ($now)"
-git remote set-url origin https://$GITHUB_USERNAME:$GITHUB_PASSWORD@github.org/intriguing-things.git
+git remote set-url origin https://$GITHUB_USERNAME:$GITHUB_PASSWORD@github.org/mobeets/intriguing-things.git
 git push origin gh-pages
 cd ..
 rm -rf intriguing-things
