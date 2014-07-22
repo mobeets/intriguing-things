@@ -7,3 +7,5 @@ python model.py --infile data.json --outfile data.json
 git add .
 git commit -m "data update ($now)"
 git push origin gh-pages
+cd ..
+rm -rf intriguing-things
