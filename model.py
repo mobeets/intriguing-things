@@ -72,7 +72,7 @@ def load(url):
     dt, contents, next_url = parse(read(url))
     if dt.strftime('%Y-%m-%d') == '2014-06-06':
         contents = fix_2014_06_06(read(url))
-    return (dt, things(contents, url)), next_url
+    return dt, things(contents, url), next_url
 
 def write(T, Tp0, outfile):
     class MyEncoder(json.JSONEncoder):
@@ -84,22 +84,27 @@ def write(T, Tp0, outfile):
             return json.JSONEncoder.default(self, obj)
 
     Tp_str = json.dumps(T, cls=MyEncoder)
+    print 'Found {0} new entries'.format(len(T))
     if Tp0:
         dts = [dt for dt, ts in Tp0]
         Tp = [(dt, ts) for dt, ts in json.loads(Tp_str) if dt not in dts]
+        print 'Keeping {0} of those new entries'.format(len(Tp))
+        assert not any([dt in dts for dt, ts in Tp]), "Added duplicate dts--whoopsie."
         Tp_str = json.dumps(Tp0 + Tp, cls=MyEncoder)
     open(outfile, 'w').write(Tp_str)
 
 def io(starturl, outfile, Tp0):
     T = []
+    urls = [ts[0].get('src_url', None) for dt, ts in Tp0]
     next_url = starturl
     while next_url and next_url != 'javascript:void(0)':
         next_url = BASE_URL + next_url.split('letters/')[1]
         print next_url
-        ts, next_url = load(next_url)
-        if len(ts) == 0 and dt.strftime('%Y-%m-%d') not in ['2014-06-06']:
+        dt, ts, next_url = load(next_url)
+        if len(ts) == 0:
             print 'ERROR: {0}'.format(dt)
-        T.append(ts)
+        if next_url not in urls:
+            T.append((dt, ts))
     write(T, Tp0, outfile)
 
 def local_io(starturl, outfile, Tp0, srcdir):
@@ -107,6 +112,7 @@ def local_io(starturl, outfile, Tp0, srcdir):
     use html files stored in srcdir, for testing locally
     """
     T = []
+    urls = [ts[0].get('src_url', None) for dt, ts in Tp0]
     url_to_filename = lambda url: os.path.join(srcdir, url.replace('/', '___'))
     filename_to_url = lambda fn: fn.replace('___', '/').replace(srcdir + '/', '')
 
@@ -119,6 +125,7 @@ def local_io(starturl, outfile, Tp0, srcdir):
             break
         html = open(infile).read()
         dt, contents, new_url = parse(html)
+        print dt
         ts = things(contents, next_url)
         if len(ts) == 0:
             if dt.strftime('%Y-%m-%d') == '2013-12-17':
@@ -127,7 +134,8 @@ def local_io(starturl, outfile, Tp0, srcdir):
                 pass
             else:
                 print 'ERROR: {0}'.format(dt)
-        T.append((dt, ts))
+        if next_url not in urls and len(ts) != 0:
+            T.append((dt, ts))
         next_url = new_url
     write(T, Tp0, outfile)
 
@@ -136,6 +144,7 @@ def load_old_and_start_url(infile):
         with open(infile) as f:
             Tp0 = json.load(f)
             last_url = Tp0[-1][1][0].get('src_url', None)
+            print 'Already found {0} entries'.format(len(Tp0))
             return Tp0, last_url
     return [], None
 
@@ -154,6 +163,15 @@ To do:
 # https://github.com/ryandotsmith/null-buildpack
 
 try to get 'heroku run ___' to work!
+
+    recreate ssh key to https://github.com/mobeets/intriguing-things/settings/keys
+    heroku run bash
+    ssh -vT git@github.com
+
+    heroku config:set GITHUB_USERNAME=joesmith
+    heroku config:set GITHUB_PASSWORD=joesmith
+
+    ERROR in data! Make sure not pushing duplicates...
 
     0. ./scrape_and_push.sh clone url should be output of git remote -v default?
     1. heroku scheduler # https://devcenter.heroku.com/articles/scheduler
