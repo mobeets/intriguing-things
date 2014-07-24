@@ -54,8 +54,8 @@ function show_all() {
   $("#rand-items").hide("fast");
 }
 
-// var url = "data.json";
-var url = "https://api.morph.io/mobeets/intriguing-things-scraper/data.json?key=JxmTnTICvaQEBMPY42F%2B&query=select%20*%20from%20%27data%27";
+// var url = "http://api.morph.io/mobeets/intriguing-things-scraper/data.json?key=JxmTnTICvaQEBMPY42F%2B&query=select%20*%20from%20%27data%27";
+var url = "data.json";
 $(function() {
     $.getJSON(url, add_to_list);
     $("#show-random").click(show_random);
