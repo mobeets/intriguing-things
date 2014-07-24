@@ -7,7 +7,7 @@ function li_item(val) {
   out3 = "<div class=\"title\"><a href=\"" + val.url + "\">" + val.title + "</a></div>";
   out4 = "<div class=\"ps\">" + val.ps + "</div>";
 
-  cur_key = val.index;
+  cur_key = val.index.replace(".", "-");
   keys.push(cur_key);
   return "<div id=\"" + cur_key + "\" class=\"item\">" + out0 + out1 + out2 + out3 + out4 + "</div>";
 }
@@ -44,6 +44,8 @@ function show_random() {
     ind = Math.floor(Math.random() * keys.length);
     if ($.inArray(ind, inds)) {
       inds.push(ind);
+      console.log(keys[ind]);
+      console.log($('#' + keys[ind]).html());
       $("#rand-item-" + i).html($('#' + keys[ind]).html());
       i += 1;
     }
@@ -55,13 +57,14 @@ function show_all() {
 }
 
 function main(data) {
+  $('#waiting').html("");
   add_to_list(data);
-  $("#show-random").click(show_random);
-  $("#show-all").click(show_all);
 }
 
 var url = "data.json";
 $(function() {
+    $("#show-random").click(show_random);
+    $("#show-all").click(show_all);
     $.ajax({
         url: "https://api.morph.io/mobeets/intriguing-things-scraper/data.json?key=CB9NyuIK2aWYi0ytlF4j&query=select%20*%20from%20'data'&callback=start",
         dataType: 'jsonp',

@@ -5,24 +5,29 @@ body {
   padding: 40px 15px;
   text-align: center;
 }
+#waiting {
+  color: red;
+  text-align: center;
+  font-weight: bold;
+}
 .item-title {
-    margin-bottom: 10px;
-    color: red;
+  margin-bottom: 10px;
+  color: red;
 }
 .title {
-    margin-bottom: 10px;
-    font-weight: bold;
+  margin-bottom: 10px;
+  font-weight: bold;
 }
 .num {
-    margin-left: 10px;
+  margin-left: 10px;
 }
 .ps {
-    margin-left: 20px;
+  margin-left: 20px;
 }
 .src-url {
-    margin-left: 10px;
-    font-size: 70%;
+  margin-left: 10px;
+  font-size: 70%;
 }
 .src-url a {
-    color: gray;
+  color: gray;
 }
