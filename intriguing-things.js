@@ -37,6 +37,7 @@ function add_to_list(data) {
 
 function show_random() {
   $("#items").hide("fast");
+  $("#books").hide("fast");
   $("#rand-items").show("fast");
   inds = [];
   i = 1;
@@ -54,15 +55,30 @@ function show_random() {
 function show_all() {
   $("#items").show("fast");
   $("#rand-items").hide("fast");
+  $("#books").hide("fast");
 }
 
 function main(data) {
   $('#waiting').html("");
+  $("#books").hide("fast");
   add_to_list(data);
+}
+
+function prep_books() {
+  $("#books").load("books.html");
+  $("#books").hide("fast");
+}
+
+function show_books() {
+  $("#books").show("fast");
+  $("#items").hide("fast");
+  $("#rand-items").hide("fast");
 }
 
 var url = "data.json";
 $(function() {
+    prep_books();
+    $("#show-books").click(show_books);
     $("#show-random").click(show_random);
     $("#show-all").click(show_all);
     $.ajax({
