@@ -83,7 +83,7 @@ $(function() {
     $("#show-all").click(show_all);
     $.ajax({
         url: "https://api.morph.io/mobeets/intriguing-things-scraper/data.json?key=CB9NyuIK2aWYi0ytlF4j&query=select%20*%20from%20'data'&callback=start",
-        dataType: 'json',
+        dataType: 'jsonp',
         success: main
-    });    
+    });
 });
